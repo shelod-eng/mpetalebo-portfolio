@@ -199,3 +199,160 @@ summary::marker { color: var(--cyan); }
   .signal-table > div { grid-template-columns: 1fr; gap: 0.25rem; }
   .site-footer { flex-direction: column; }
 }
+
+/* V4 Phase 2A command centre refinements */
+.command-centre {
+  padding: clamp(4rem, 8vw, 7rem) clamp(1rem, 5vw, 5rem);
+}
+.command-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 1rem;
+  background: linear-gradient(145deg, rgba(22,217,199,0.1), rgba(98,168,255,0.06)), rgba(7,17,31,0.72);
+  box-shadow: var(--shadow);
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+.command-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(20rem, 1.1fr);
+  gap: 1rem;
+}
+.command-stages {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.7rem;
+}
+.command-stage {
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: rgba(255,255,255,0.055);
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  gap: 0.35rem;
+  min-height: 5rem;
+  padding: 0.9rem;
+  text-align: left;
+  transition: 180ms ease;
+}
+.command-stage span {
+  color: var(--gold);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+.command-stage:hover,
+.command-stage.is-active {
+  border-color: var(--cyan);
+  background: rgba(22,217,199,0.1);
+  transform: translateY(-2px);
+}
+.command-stage.flagship {
+  border-color: rgba(66,216,138,0.42);
+  background: rgba(66,216,138,0.08);
+}
+.command-detail {
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: rgba(7,17,31,0.76);
+  min-height: 20rem;
+  padding: 1.25rem;
+}
+.command-tags,
+.domain-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 1rem 0;
+}
+.command-tags span,
+.domain-strip span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.055);
+  color: var(--soft);
+  padding: 0.52rem 0.7rem;
+}
+.domain-strip span:nth-child(1) { border-color: rgba(22,217,199,0.35); }
+.domain-strip span:nth-child(2) { border-color: rgba(66,216,138,0.35); }
+.domain-strip span:nth-child(3) { border-color: rgba(245,184,75,0.4); }
+.domain-strip span:nth-child(5) { border-color: rgba(148,163,184,0.45); }
+.domain-strip span:nth-child(6) { border-color: rgba(165,140,255,0.42); }
+.module-inspector dt:nth-of-type(4),
+.module-inspector dt:nth-of-type(5),
+.module-inspector dt:nth-of-type(7) {
+  color: var(--gold);
+}
+.value-flow {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(7rem, 1fr));
+  gap: 0.55rem;
+  overflow-x: auto;
+  padding-bottom: 0.7rem;
+}
+.value-node {
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: rgba(7,17,31,0.76);
+  color: var(--text);
+  cursor: pointer;
+  min-height: 5rem;
+  padding: 0.75rem;
+  position: relative;
+  text-align: left;
+  transition: 180ms ease;
+}
+.value-node::after {
+  content: "";
+  position: absolute;
+  right: -0.55rem;
+  top: 50%;
+  width: 0.55rem;
+  height: 2px;
+  background: var(--cyan);
+  opacity: 0.55;
+}
+.value-node:last-child::after { display: none; }
+.value-node span {
+  color: var(--gold);
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 800;
+  margin-bottom: 0.3rem;
+}
+.value-node:hover,
+.value-node.is-active {
+  border-color: var(--cyan);
+  background: rgba(22,217,199,0.1);
+  transform: translateY(-2px);
+}
+.tier-consumer { border-color: rgba(22,217,199,0.28); }
+.tier-merchant { border-color: rgba(66,216,138,0.28); }
+.tier-financial { border-color: rgba(245,184,75,0.32); }
+.tier-platform { border-color: rgba(98,168,255,0.32); }
+.tier-infrastructure { border-color: rgba(148,163,184,0.35); }
+.tier-insight { border-color: rgba(165,140,255,0.35); }
+.tier-channels { border-color: rgba(22,217,199,0.22); }
+.tier-knowledge { border-color: rgba(232,196,108,0.28); }
+.reconciliation { left: 50%; top: 85%; transform: translateX(-50%); }
+.analytics { right: 7%; top: 72%; color: var(--purple); }
+.repo { right: 6%; top: 30%; color: var(--gold); }
+
+@media (max-width: 1120px) {
+  .command-workbench { grid-template-columns: 1fr; }
+  .value-flow { grid-template-columns: repeat(2, 1fr); overflow-x: visible; }
+  .value-node::after { display: none; }
+}
+
+@media (max-width: 780px) {
+  .command-stages,
+  .value-flow { grid-template-columns: 1fr; }
+  .command-stage { min-height: auto; }
+  .command-detail { min-height: auto; }
+}
+.ledger { right: 19%; top: 55%; }
+.payout { left: 19%; top: 70%; }
+.settlement { right: 19%; top: 70%; transform: none; }
+.reconciliation { left: 36%; top: 84%; transform: none; }
+.analytics { right: 22%; top: 84%; }
+.infrastructure { right: 6%; top: 48%; }

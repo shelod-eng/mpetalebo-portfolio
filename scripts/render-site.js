@@ -3,6 +3,7 @@ const path = require('path');
 const {
   routes,
   primaryNav,
+  commandCentre,
   signals,
   platformModules,
   valueJourney,
@@ -24,9 +25,22 @@ function esc(value) {
   }[char]));
 }
 
-function attr(value) {
-  return esc(JSON.stringify(value));
+function moduleFrom(row) {
+  const [id, name, domain, layer, purpose, problem, responsibilities, integrations, evidenceText, href] = row;
+  return { id, name, domain, layer, purpose, problem, responsibilities, integrations, evidence: evidenceText, href, relatedArea: domain };
 }
+
+function journeyFrom(row) {
+  const [stage, businessPurpose, systemResponsibility, financialResponsibility, nextStage] = row;
+  return { stage, businessPurpose, systemResponsibility, financialResponsibility, nextStage };
+}
+
+function commandFrom(row) {
+  const [id, stage, summary, items, outcome] = row;
+  return { id, stage, summary, items, outcome };
+}
+
+function attr(value) { return esc(JSON.stringify(value)); }
 
 function asset(routePath, file) {
   const depth = routePath === '/' ? 0 : routePath.split('/').filter(Boolean).length;
@@ -65,7 +79,7 @@ function layout(route, body) {
     <details class="mobile-menu"><summary>Menu</summary><nav>${nav}</nav></details>
   </header>
   <main class="page-shell">${body}</main>
-  <footer class="site-footer"><p>Lebo Mpeta | Enterprise FinTech Platform Architect</p><a href="/contact">Discuss a Project</a></footer>
+  <footer class="site-footer"><p>Lebo Mpeta | Enterprise FinTech Platform Architect</p><a href="/contact">Start an Architecture Discovery</a></footer>
   <script src="${asset(route.path, 'app.js')}" defer></script>
 </body>
 </html>`;
@@ -75,91 +89,86 @@ function sectionHeading(eyebrow, title, intro = '') {
   return `<div class="section-heading"><p class="eyebrow">${esc(eyebrow)}</p><h2>${esc(title)}</h2>${intro ? `<p class="section-intro">${esc(intro)}</p>` : ''}</div>`;
 }
 
+function hero() {
+  const steps = ['Business Idea','Enterprise Discovery','Architecture','Technical Design','Development','Deployment','Operations','Business Intelligence'];
+  return `<section class="hero"><div class="hero-grid"><div class="hero-copy"><p class="eyebrow">Lebo Mpeta</p><h1>Enterprise FinTech Platform Architect</h1><p class="hero-lede">Designing Enterprise Digital Platforms That Power Business Growth. Turning Business Ideas into Enterprise Digital Platforms.</p><div class="hero-actions"><a class="button primary" href="/platforms">Explore My Platforms</a><a class="button secondary" href="/architecture">Explore My Architecture</a></div></div><div class="journey-panel" aria-label="Enterprise operating model"><div class="journey-orbit">${steps.map((step, index) => `<div class="journey-step" style="--i:${index}"><span>${String(index + 1).padStart(2, '0')}</span><strong>${esc(step)}</strong></div>`).join('')}</div><div class="hero-statement">Enterprise Operating Model</div></div></div></section>`;
+}
+
+function commandCentrePanel() {
+  const stages = commandCentre.map(commandFrom);
+  const active = stages[0];
+  return `<section class="command-centre" aria-labelledby="command-title"><div class="command-shell"><div class="surface-top"><div><p class="eyebrow">Enterprise Platform Command Centre</p><h2 id="command-title">Enter through the operating model</h2><p class="section-intro">Explore how a business problem moves through discovery, architecture, engineering, delivery and operations.</p></div><a class="button compact" href="/platforms/evoucher">Explore eVoucher</a></div><div class="command-workbench"><div class="command-stages" role="tablist" aria-label="Operating stages">${stages.map((stage, index) => `<button type="button" role="tab" class="command-stage${index === 0 ? ' is-active' : ''}" data-command='${attr(stage)}'><span>${String(index + 1).padStart(2, '0')}</span>${esc(stage.stage)}</button>`).join('')}<a class="command-stage flagship" href="/platforms/evoucher"><span>06</span>eVoucher Enterprise Platform</a></div><article class="command-detail" aria-live="polite"><p class="eyebrow">Selected Operating Stage</p><h3 data-command-panel="stage">${esc(active.stage)}</h3><p data-command-panel="summary">${esc(active.summary)}</p><div class="command-tags" data-command-panel="items">${active.items.map((item) => `<span>${esc(item)}</span>`).join('')}</div><dl><dt>Outcome</dt><dd data-command-panel="outcome">${esc(active.outcome)}</dd></dl></article></div></div></section>`;
+}
+
 function signalTable() {
   return `<div class="signal-table" role="table" aria-label="Platform signals"><div role="row" class="signal-head"><span>Signal</span><span>What it demonstrates</span></div>${signals.map(([a,b]) => `<div role="row"><strong>${esc(a)}</strong><span>${esc(b)}</span></div>`).join('')}</div>`;
 }
 
 function platformMap() {
-  const primary = ['Consumer Marketplace', 'Payment', 'Voucher Engine', 'Billing Engine', 'Voucher Ledger', 'Settlement', 'Merchant Payout', 'Infrastructure'];
+  const mapNames = ['Consumer Marketplace', 'Payment', 'Voucher Engine', 'Billing Engine', 'Ledger', 'Payout', 'Settlement', 'Reconciliation', 'Analytics', 'Infrastructure'];
   return `<div class="platform-visual" aria-label="Illustrative eVoucher platform flow">
-    <svg class="flow-svg" viewBox="0 0 900 520" role="img" aria-label="Illustrative platform flow from consumer to infrastructure">
+    <svg class="flow-svg" viewBox="0 0 900 560" role="img" aria-label="Illustrative platform flow from consumer to analytics">
       <defs><linearGradient id="flowStroke" x1="0" x2="1"><stop offset="0" stop-color="#16d9c7"/><stop offset="1" stop-color="#62a8ff"/></linearGradient></defs>
-      <path class="flow-path" d="M450 45 L450 105 L450 165 L450 225 M450 225 L260 300 L260 375 M450 225 L640 300 L640 375 M260 375 L450 450 M640 375 L450 450" />
+      <path class="flow-path" d="M450 45 L450 105 L450 165 L450 225 L450 285 L310 350 L310 420 L450 500 M450 285 L590 350 L590 420 L450 500" />
       <circle class="flow-dot dot-one" r="6"/><circle class="flow-dot dot-two" r="6"/><circle class="flow-dot dot-three" r="6"/>
     </svg>
     <div class="map-node consumer">Consumer</div>
-    ${primary.map((name) => {
-      const item = platformModules.find((mod) => mod.name === name);
+    ${mapNames.map((name) => {
+      const item = platformModules.map(moduleFrom).find((mod) => mod.name === name);
       return `<button class="map-node module ${esc(item.id)}" type="button" data-module='${attr(item)}' aria-label="Inspect ${esc(item.name)}">${esc(item.name)}</button>`;
     }).join('')}
-    <div class="map-branch analytics">Analytics</div><div class="map-branch merchant">Merchant Portal</div>
+    <div class="map-branch merchant">Merchant Portal</div><div class="map-branch repo">Enterprise Repository</div>
     <p class="flow-caption">Illustrative platform flow, not live production metrics.</p>
   </div>`;
 }
 
 function moduleInspector() {
-  const billing = platformModules.find((item) => item.id === 'billing-engine');
-  return `<aside class="module-inspector" aria-live="polite">
-    <p class="eyebrow">Selected Module</p>
-    <h3 data-inspector="name">${esc(billing.name)}</h3>
-    <dl>
-      <dt>Purpose</dt><dd data-inspector="purpose">${esc(billing.purpose)}</dd>
-      <dt>Architecture Layer</dt><dd data-inspector="layer">${esc(billing.layer)}</dd>
-      <dt>Business Problem</dt><dd data-inspector="problem">${esc(billing.problem)}</dd>
-      <dt>Evidence</dt><dd data-inspector="evidence">${esc(billing.evidence)}</dd>
-    </dl>
-    <a class="button secondary" data-inspector="href" href="${billing.href}">Drill into Evidence</a>
-  </aside>`;
+  const billing = moduleFrom(platformModules.find((item) => item[0] === 'billing-engine'));
+  return `<aside class="module-inspector" aria-live="polite"><p class="eyebrow">Selected Platform Module</p><h3 data-inspector="name">${esc(billing.name)}</h3><dl><dt>Purpose</dt><dd data-inspector="purpose">${esc(billing.purpose)}</dd><dt>Business Problem</dt><dd data-inspector="problem">${esc(billing.problem)}</dd><dt>Architecture Layer</dt><dd data-inspector="layer">${esc(billing.layer)}</dd><dt>Responsibilities</dt><dd data-inspector="responsibilities">${esc(billing.responsibilities.join(', '))}</dd><dt>Integration Relationships</dt><dd data-inspector="integrations">${esc(billing.integrations.join(', '))}</dd><dt>Evidence</dt><dd data-inspector="evidence">${esc(billing.evidence)}</dd><dt>Related Area</dt><dd data-inspector="related">${esc(billing.relatedArea)}</dd></dl><a class="button secondary" data-inspector="href" href="${billing.href}">Drill into Evidence</a></aside>`;
 }
 
 function platformControlSurface() {
-  return `<section class="control-surface" aria-labelledby="surface-title">
-    <div class="surface-top"><div><p class="eyebrow">Lebo Mpeta - Enterprise Platform Architecture</p><h2 id="surface-title">Enterprise Platform Control Surface</h2></div><a class="button compact" href="/contact">Discuss a Project</a></div>
-    <div class="signal-cards"><article><span>FinTech</span><strong>Platform</strong></article><article><span>Architecture</span><strong>Enterprise Design</strong></article><article><span>Platform</span><strong>Engineering</strong></article><article><span>Financial</span><strong>Systems</strong></article></div>
-    <div class="platform-workbench">${platformMap()}${moduleInspector()}</div>
-    <div class="surface-actions"><a href="/architecture">Architecture <span>Explore</span></a><a href="/methodology">Methodology <span>Discover to Operate</span></a><a href="/repository">Repository <span>Explore Evidence</span></a></div>
-    ${signalTable()}
-  </section>`;
+  const domains = ['Consumer', 'Merchant', 'Financial', 'Platform', 'Infrastructure', 'Insight', 'Channels', 'Knowledge'];
+  return `<section class="control-surface" aria-labelledby="surface-title"><div class="surface-top"><div><p class="eyebrow">eVoucher Enterprise Platform</p><h2 id="surface-title">A working example of how business requirements become an integrated enterprise digital platform.</h2></div><a class="button compact" href="/case-studies/evoucher">View Platform Evidence</a></div><div class="domain-strip">${domains.map((domain) => `<span>${esc(domain)}</span>`).join('')}</div><div class="platform-workbench">${platformMap()}${moduleInspector()}</div><div class="surface-actions"><a href="/architecture">Architecture <span>Explore</span></a><a href="/repository">Repository <span>Evidence</span></a><a href="/contact">Discovery <span>Start</span></a></div>${signalTable()}</section>`;
 }
 
 function moduleGrid() {
-  return `<div class="module-grid">${platformModules.map((item) => `<button class="module-card" type="button" data-module='${attr(item)}' title="${esc(item.purpose)}"><strong>${esc(item.name)}</strong><small>${esc(item.layer)}</small><span>${esc(item.purpose)}</span></button>`).join('')}</div>${moduleInspector()}`;
+  return `<div class="module-grid">${platformModules.map((row) => { const item = moduleFrom(row); return `<button class="module-card tier-${esc(item.domain.toLowerCase())}" type="button" data-module='${attr(item)}'><small>${esc(item.domain)}</small><strong>${esc(item.name)}</strong><span>${esc(item.purpose)}</span></button>`; }).join('')}</div>${moduleInspector()}`;
 }
 
 function valueJourneyPanel() {
-  const first = valueJourney[0];
-  return `<section class="dashboard-panel value-panel"><div>${sectionHeading('How Value Moves Through The Platform', 'Business, system, data, finance and operations in one trace', 'Move through the illustrative journey to see what each step creates and controls.')}
-    <div class="value-workbench"><div class="journey-steps" role="tablist" aria-label="Platform value journey">${valueJourney.map((step, index) => `<button type="button" role="tab" class="journey-button${index === 0 ? ' is-active' : ''}" data-journey='${attr(step)}'><span>${String(index + 1).padStart(2, '0')}</span>${esc(step[0])}</button>`).join('')}</div>
-    <article class="journey-detail" aria-live="polite"><p class="eyebrow">Illustrative platform flow</p><h3 data-journey-panel="event">${esc(first[0])}</h3><dl><dt>System Component</dt><dd data-journey-panel="component">${esc(first[1])}</dd><dt>Financial Control</dt><dd data-journey-panel="control">${esc(first[2])}</dd><dt>Data Created</dt><dd data-journey-panel="data">${esc(first[3])}</dd><dt>Operational Result</dt><dd data-journey-panel="result">${esc(first[4])}</dd></dl></article></div></div></section>`;
+  const first = journeyFrom(valueJourney[0]);
+  return `<section class="dashboard-panel value-panel"><div>${sectionHeading('How Value Moves Through The Platform', 'Consumer to analytics, with financial control visible', 'Select a stage to see the business purpose, system responsibility, financial responsibility and next stage.')}
+    <div class="value-flow">${valueJourney.map((row, index) => `<button class="value-node${index === 0 ? ' is-active' : ''}" type="button" data-journey='${attr(journeyFrom(row))}'><span>${String(index + 1).padStart(2, '0')}</span>${esc(row[0])}</button>`).join('')}</div>
+    <article class="journey-detail" aria-live="polite"><p class="eyebrow">Selected Value Stage</p><h3 data-journey-panel="event">${esc(first.stage)}</h3><dl><dt>Business Purpose</dt><dd data-journey-panel="business">${esc(first.businessPurpose)}</dd><dt>System Responsibility</dt><dd data-journey-panel="system">${esc(first.systemResponsibility)}</dd><dt>Financial Responsibility</dt><dd data-journey-panel="financial">${esc(first.financialResponsibility)}</dd><dt>Next Stage</dt><dd data-journey-panel="next">${esc(first.nextStage)}</dd></dl></article></div></section>`;
 }
 
 function architecturePanel() {
-  const first = architectureLayers[0];
-  return `<section class="dashboard-panel architecture-explorer"><div>${sectionHeading('Architecture Layer Explorer', 'Click a layer to understand how the platform behaves', 'The architecture view moves from business context to application, data, integration, infrastructure and operations.')}
-    <div class="layer-workbench"><div class="layer-buttons" role="tablist" aria-label="Architecture layers">${architectureLayers.map(([name, desc, key], index) => `<button type="button" role="tab" class="layer-button${index === 0 ? ' is-active' : ''}" data-layer-name="${esc(name)}" data-layer-desc="${esc(desc)}" data-tier="${esc(key)}">${esc(name)}</button>`).join('')}</div>
-    <article class="layer-detail" aria-live="polite"><p class="eyebrow">Selected Architecture Layer</p><h3 data-layer-panel="name">${esc(first[0])}</h3><p data-layer-panel="desc">${esc(first[1])}</p><a class="button secondary" href="/architecture/gallery">Explore Architecture Gallery</a></article></div></div></section>`;
+  const [name, desc, components] = architectureLayers[0];
+  return `<section class="dashboard-panel architecture-explorer"><div>${sectionHeading('Architecture Layers', 'The platform as a system, not isolated applications', 'Select a layer to see which eVoucher components belong to that architectural concern.')}
+    <div class="layer-workbench"><div class="layer-buttons" role="tablist" aria-label="Architecture layers">${architectureLayers.map(([layer, layerDesc, layerComponents], index) => `<button type="button" role="tab" class="layer-button${index === 0 ? ' is-active' : ''}" data-layer-name="${esc(layer)}" data-layer-desc="${esc(layerDesc)}" data-layer-components="${esc(layerComponents.join(', '))}">${esc(layer)}</button>`).join('')}</div><article class="layer-detail" aria-live="polite"><p class="eyebrow">Selected Architecture Layer</p><h3 data-layer-panel="name">${esc(name)}</h3><p data-layer-panel="desc">${esc(desc)}</p><div class="command-tags" data-layer-panel="components">${components.map((item) => `<span>${esc(item)}</span>`).join('')}</div><a class="button secondary" href="/architecture/gallery">Explore Architecture Gallery</a></article></div></section>`;
 }
 
 function servicesPanel() {
-  return `<section class="content-section"><div>${sectionHeading('What I Help Organisations Solve', 'Client problems first, technology second', 'Each capability is framed around the business pain, the architecture response and the operating result.')}</div><div class="problem-grid">${services.map(([title, problem, approach, outcome]) => `<article><p class="eyebrow">Client Problem</p><h3>${esc(title)}</h3><dl><dt>Problem</dt><dd>${esc(problem)}</dd><dt>I help design</dt><dd>${esc(approach)}</dd><dt>Outcome</dt><dd>${esc(outcome)}</dd></dl><a class="text-link" href="/services">Explore this capability</a></article>`).join('')}</div></section>`;
+  return `<section class="content-section"><div>${sectionHeading('What Business Problem Are You Trying To Solve?', 'Client problems first, technology second', 'Phase 2A preserves the services route while sharpening the homepage signal around business problems.')}</div><div class="problem-grid">${services.map(([title, problem, approach, outcome]) => `<article><p class="eyebrow">Client Problem</p><h3>${esc(title)}</h3><dl><dt>Problem</dt><dd>${esc(problem)}</dd><dt>I help design</dt><dd>${esc(approach)}</dd><dt>Outcome</dt><dd>${esc(outcome)}</dd></dl><a class="text-link" href="/services">Explore this capability</a></article>`).join('')}</div></section>`;
 }
 
 function methodologyPanel() {
-  return `<section class="dashboard-panel"><div>${sectionHeading('How I Deliver', 'Discover -> Design -> Build -> Deliver -> Operate', 'Each stage is interactive and shows purpose, activities and artefacts.')}</div><div class="methodology-track">${methodology.map(([phase, purpose, activities, artefacts], index) => `<details class="method-card" ${index === 0 ? 'open' : ''}><summary><span>${String(index + 1).padStart(2, '0')}</span>${esc(phase)}</summary><p>${esc(purpose)}</p><small>Activities: ${esc(activities)}</small><small>Outputs: ${esc(artefacts)}</small></details>`).join('')}</div></section>`;
+  return `<section class="dashboard-panel"><div>${sectionHeading('How I Deliver', 'Discover -> Design -> Build -> Deliver -> Operate', 'Each stage remains expandable and concise.')}</div><div class="methodology-track">${methodology.map(([phase, purpose, activities, artefacts], index) => `<details class="method-card" ${index === 0 ? 'open' : ''}><summary><span>${String(index + 1).padStart(2, '0')}</span>${esc(phase)}</summary><p>${esc(purpose)}</p><small>Activities: ${esc(activities)}</small><small>Outputs: ${esc(artefacts)}</small></details>`).join('')}</div></section>`;
 }
 
 function galleryPanel(limit) {
   const items = limit ? gallery.slice(0, limit) : gallery;
-  return `<section class="content-section"><div>${sectionHeading('Architecture Gallery', 'Visual artefacts that explain how the platform works', 'Each card has a preview, architecture layer, concise purpose and route to a deeper view.')}</div><div class="gallery-grid">${items.map(([title, layer, desc, href], index) => `<a class="gallery-card visual-card" href="${href}"><span>Artefact ${String(index + 1).padStart(2, '0')}</span><div class="diagram-mini"><i></i><i></i><i></i></div><strong>${esc(title)}</strong><small>${esc(layer)}</small><p>${esc(desc)}</p></a>`).join('')}</div></section>`;
+  return `<section class="content-section"><div>${sectionHeading('Architecture Gallery', 'Visual artefacts that explain how the platform works', 'Each card is labelled as an architecture model unless linked to verified repository evidence.')}</div><div class="gallery-grid">${items.map(([title, layer, desc, href], index) => `<a class="gallery-card visual-card" href="${href}"><span>Illustrative Architecture Model ${String(index + 1).padStart(2, '0')}</span><div class="diagram-mini"><i></i><i></i><i></i></div><strong>${esc(title)}</strong><small>${esc(layer)}</small><p>${esc(desc)}</p></a>`).join('')}</div></section>`;
 }
 
 function repositoryPanel() {
-  return `<section class="content-section alt-section"><div>${sectionHeading('Enterprise Repository', 'The evidence behind the architecture', 'A professional knowledge centre for verified documents, API catalogues, architecture decisions and operational artefacts.')}</div><div class="repository-grid">${repoCategories.map(([title, href, desc, artefacts]) => `<a class="repo-card" href="${href}"><h3>${esc(title)}</h3><p>${esc(desc)}</p><small>${esc(artefacts[0])}</small><span>Open Repository Area</span></a>`).join('')}</div></section>`;
+  return `<section class="content-section alt-section"><div>${sectionHeading('Enterprise Knowledge Centre', 'The evidence behind the architecture', 'A professional knowledge centre for verified documents, API catalogues, architecture decisions and operational artefacts.')}</div><div class="repository-grid">${repoCategories.map(([title, href, desc, artefacts]) => `<a class="repo-card" href="${href}"><h3>${esc(title)}</h3><p>${esc(desc)}</p><small>${esc(artefacts[0])}</small><span>Open Repository Area</span></a>`).join('')}</div></section>`;
 }
 
 function repositoryDetail(routePath) {
   const category = repoCategories.find(([, href]) => href === routePath) || repoCategories[0];
-  return `<section class="page-hero"><p class="eyebrow">Enterprise Repository</p><h1>${esc(category[0])}</h1><p>${esc(category[2])}</p><div class="evidence-band"><span>Artefacts pending verification</span><span>No fabricated documents</span><span>Knowledge centre ready</span></div></section><section class="content-section"><div>${sectionHeading('Repository Area', `${category[0]} evidence`, 'This page is structured for real artefacts as they are prepared and verified.')}</div><div class="repository-grid">${category[3].map((item) => `<article class="repo-card"><h3>${esc(item)}</h3><p>Documentation being prepared. This placeholder marks the intended evidence location without fabricating a completed artefact.</p><span>Artefact in development</span></article>`).join('')}</div></section>${repositoryPanel()}${contactPanel()}`;
+  return `<section class="page-hero"><p class="eyebrow">Enterprise Knowledge Centre</p><h1>${esc(category[0])}</h1><p>${esc(category[2])}</p><div class="evidence-band"><span>Coming Soon</span><span>No fabricated documents</span><span>Knowledge centre ready</span></div></section><section class="content-section"><div>${sectionHeading('Repository Area', `${category[0]} evidence`, 'This page is structured for real artefacts as they are prepared and verified.')}</div><div class="repository-grid">${category[3].map((item) => `<article class="repo-card"><h3>${esc(item)}</h3><p>Documentation being prepared. This placeholder marks the intended evidence location without fabricating a completed artefact.</p><span>Artefact in development</span></article>`).join('')}</div></section>${repositoryPanel()}${contactPanel()}`;
 }
 
 function evidencePanel() {
@@ -171,22 +180,21 @@ function thinkingPanel() {
 }
 
 function caseStudyPanel(full = false) {
-  const steps = ['The Business Challenge', 'Discovery', 'Business Model', 'Platform Architecture', 'Consumer Experience', 'Merchant Experience', 'Financial Operations', 'Billing', 'Ledger', 'Settlement', 'Infrastructure', 'Business Intelligence'];
-  return `<section class="content-section"><div>${sectionHeading('Flagship Case Study', 'eVoucher Enterprise Platform', 'A verified architecture story focused on system thinking, financial operations and enterprise delivery. No unverified metrics or client claims are presented.')}</div><article class="case-study"><div><h3>System thinking, not a website build</h3><p>eVoucher demonstrates how a business idea becomes an enterprise fintech platform with connected consumer, merchant, payment, voucher, billing, ledger, settlement, infrastructure and analytics concerns.</p><a class="button secondary" href="/case-studies/evoucher">Open Case Study</a></div><ol class="story-steps">${steps.map(step => `<li>${esc(step)}</li>`).join('')}</ol></article>${full ? `<div class="evidence-band"><span>Production platform</span><span>Financial operations surface</span><span>Architecture capability</span><span>Engineering evidence</span></div>` : ''}</section>`;
+  const steps = ['Business Challenge', 'Discovery', 'Business Model', 'Architecture', 'Technical Design', 'Development', 'Deployment', 'Operations', 'Business Intelligence'];
+  return `<section class="content-section"><div>${sectionHeading('Flagship Case Study', 'eVoucher Enterprise Platform', 'A verified architecture story focused on system thinking, financial operations and enterprise delivery. No unverified metrics or client claims are presented.')}</div><article class="case-study"><div><h3>System thinking, not a website build</h3><p>eVoucher demonstrates how a business idea becomes an enterprise fintech platform with connected consumer, merchant, payment, voucher, billing, ledger, payout, settlement, reconciliation, infrastructure and analytics concerns.</p><a class="button secondary" href="/case-studies/evoucher">Open Case Study</a></div><ol class="story-steps">${steps.map(step => `<li>${esc(step)}</li>`).join('')}</ol></article>${full ? `<div class="evidence-band"><span>Production platform</span><span>Financial operations surface</span><span>Architecture capability</span><span>Engineering evidence</span></div>` : ''}</section>`;
 }
 
 function contactPanel() {
-  return `<section class="contact-section"><div><p class="eyebrow">Client Conversion</p><h2>Have a business problem? Need to design a digital platform? Need to connect fragmented systems? Need better financial operations?</h2><p>Bring the business problem. The work starts with discovery, architecture and a practical route to delivery.</p><div class="hero-actions"><a class="button primary" href="mailto:mpetaebo@outlook.com">Start a Conversation</a><a class="button secondary" href="tel:+27604865147">Book a Consultation</a></div></div><address><strong>Lebo Mpeta</strong><span>Enterprise FinTech Platform Architect</span><a href="tel:+27604865147">0604865147</a><a href="mailto:mpetaebo@outlook.com">mpetaebo@outlook.com</a></address></section>`;
+  return `<section class="contact-section"><div><p class="eyebrow">Have a business problem?</p><h2>Let's turn it into an enterprise digital platform.</h2><p>Start with architecture discovery, then move toward a platform that can be designed, built, delivered and operated.</p><div class="hero-actions"><a class="button primary" href="mailto:mpetaebo@outlook.com?subject=Architecture%20Discovery%20Request">Start an Architecture Discovery</a><a class="button secondary" href="/platforms/evoucher">Explore eVoucher</a></div></div><address><strong>Lebo Mpeta</strong><span>Enterprise FinTech Platform Architect</span><a href="tel:+27604865147">0604865147</a><a href="mailto:mpetaebo@outlook.com">mpetaebo@outlook.com</a></address></section>`;
 }
 
 function home() {
-  const steps = ['Business Idea','Discovery','Architecture','Technical Design','Development','Deployment','Operations','Business Intelligence'];
-  return `<section class="hero"><div class="hero-grid"><div class="hero-copy"><p class="eyebrow">Enterprise FinTech</p><h1>Platform Architect</h1><p class="hero-lede">Designing Enterprise Digital Platforms That Power Business Growth. Turning Business Ideas into Enterprise Digital Platforms.</p><div class="hero-actions"><a class="button primary" href="/platforms">Explore My Platforms</a><a class="button secondary" href="/architecture">Explore My Architecture</a></div></div><div class="journey-panel" aria-label="Enterprise operating model"><div class="journey-orbit">${steps.map((step, index) => `<div class="journey-step" style="--i:${index}"><span>${String(index + 1).padStart(2, '0')}</span><strong>${esc(step)}</strong></div>`).join('')}</div><div class="hero-statement">Enterprise Operating Model</div></div></div></section>${platformControlSurface()}${valueJourneyPanel()}${architecturePanel()}${servicesPanel()}${methodologyPanel()}${galleryPanel(6)}${repositoryPanel()}${evidencePanel()}${thinkingPanel()}${caseStudyPanel()}${contactPanel()}`;
+  return `${hero()}${commandCentrePanel()}${platformControlSurface()}${valueJourneyPanel()}${architecturePanel()}${servicesPanel()}${methodologyPanel()}${galleryPanel(6)}${repositoryPanel()}${evidencePanel()}${thinkingPanel()}${caseStudyPanel()}${contactPanel()}`;
 }
 
 function standardPage(route) {
-  if (route.path === '/platforms') return `${platformControlSurface()}<section class="content-section"><div>${sectionHeading('Platform Ecosystem', 'Platforms as connected operating systems', 'Click modules to understand their purpose, architecture layer, business problem and evidence path.')}</div>${moduleGrid()}</section>${valueJourneyPanel()}${evidencePanel()}${contactPanel()}`;
-  if (route.path === '/platforms/evoucher') return `<section class="page-hero"><p class="eyebrow">Featured Platform</p><h1>eVoucher Enterprise Platform</h1><p>Consumer, merchant, payment, voucher, billing, ledger, settlement, infrastructure and analytics surfaces presented as a fintech architecture story.</p></section>${platformControlSurface()}${valueJourneyPanel()}${caseStudyPanel(true)}${contactPanel()}`;
+  if (route.path === '/platforms') return `${platformControlSurface()}<section class="content-section"><div>${sectionHeading('Platform Ecosystem', 'Platforms as connected operating systems', 'Select modules to understand their purpose, responsibilities, integrations and evidence path.')}</div>${moduleGrid()}</section>${valueJourneyPanel()}${evidencePanel()}${contactPanel()}`;
+  if (route.path === '/platforms/evoucher') return `<section class="page-hero"><p class="eyebrow">Featured Platform</p><h1>eVoucher Enterprise Platform</h1><p>A working example of how business requirements become an integrated enterprise digital platform.</p></section>${platformControlSurface()}${valueJourneyPanel()}${caseStudyPanel(true)}${contactPanel()}`;
   if (route.path === '/services') return `${servicesPanel()}${thinkingPanel()}${contactPanel()}`;
   if (route.path === '/methodology') return `${methodologyPanel()}${thinkingPanel()}${contactPanel()}`;
   if (route.path === '/architecture') return `${architecturePanel()}${galleryPanel(6)}${evidencePanel()}${contactPanel()}`;
