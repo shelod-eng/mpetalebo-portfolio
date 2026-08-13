@@ -1,0 +1,5 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Lebo Mpeta monogram">
+  <rect width="64" height="64" rx="14" fill="#07111f"/>
+  <path d="M16 46V16h8v23h15v7H16Z" fill="#f8fafc"/>
+  <path d="M31 46V16h8l9 14 9-14h8v30h-8V29l-8 12h-2l-8-12v17h-8Z" fill="#16d9c7" opacity=".92"/>
+</svg>
