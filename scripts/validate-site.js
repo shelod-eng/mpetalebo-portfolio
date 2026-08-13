@@ -6,31 +6,15 @@ renderAll();
 
 const failures = [];
 const requiredRoutes = [
-  '/',
-  '/platforms',
-  '/platforms/evoucher',
-  '/services',
-  '/methodology',
-  '/architecture',
-  '/architecture/gallery',
-  '/architecture/platform',
-  '/architecture/integration',
-  '/repository',
-  '/repository/architecture',
-  '/repository/apis',
-  '/repository/data',
-  '/repository/security',
-  '/repository/infrastructure',
-  '/repository/governance',
-  '/case-studies',
-  '/case-studies/evoucher',
-  '/contact',
+  '/', '/platforms', '/platforms/evoucher', '/services', '/methodology', '/architecture',
+  '/architecture/gallery', '/architecture/platform', '/architecture/integration', '/repository',
+  '/repository/architecture', '/repository/apis', '/repository/data', '/repository/security',
+  '/repository/infrastructure', '/repository/governance', '/case-studies', '/case-studies/evoucher', '/contact',
 ];
 
 for (const route of requiredRoutes) {
   if (!routes.some((item) => item.path === route)) failures.push(`Route not configured: ${route}`);
-  const file = pagePath(route);
-  if (!fs.existsSync(file)) failures.push(`Route not generated: ${route}`);
+  if (!fs.existsSync(pagePath(route))) failures.push(`Route not generated: ${route}`);
 }
 
 const htmlFiles = [];
@@ -44,17 +28,7 @@ function walk(dir) {
 walk(dist);
 
 const routeSet = new Set(requiredRoutes);
-const forbidden = [
-  'Lorem ipsum',
-  'award-winning',
-  'certified',
-  'government client',
-  'testimonial',
-  'revenue:',
-  'users:',
-  'transactions:',
-  'uptime:',
-];
+const forbidden = ['Lorem ipsum', 'award-winning', 'certified', 'government client', 'testimonial', 'revenue:', 'users:', 'transactions:', 'uptime:', '99.9%', '120k', '10,000'];
 
 for (const file of htmlFiles) {
   const html = fs.readFileSync(file, 'utf8');
@@ -66,33 +40,36 @@ for (const file of htmlFiles) {
   }
   const links = [...html.matchAll(/href="([^"]+)"/g)].map((match) => match[1]);
   for (const link of links) {
-    if (link.startsWith('mailto:') || link.startsWith('tel:') || link.startsWith('http')) continue;
-    if (link.startsWith('#')) continue;
+    if (link.startsWith('mailto:') || link.startsWith('tel:') || link.startsWith('http') || link.startsWith('#')) continue;
+    if (link.endsWith('.css') || link.endsWith('.svg') || link.endsWith('.js')) continue;
     const clean = link.replace(/\/$/, '') || '/';
-    if (!routeSet.has(clean) && !link.endsWith('.css') && !link.endsWith('.svg')) {
-      failures.push(`Broken internal link in ${path.relative(dist, file)}: ${link}`);
-    }
+    if (!routeSet.has(clean)) failures.push(`Broken internal link in ${path.relative(dist, file)}: ${link}`);
   }
 }
 
 const home = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
 for (const text of [
-  'Platform Signals',
-  'eVoucher Enterprise Platform',
-  'Architecture at a Glance',
-  'What I Help Organisations Solve',
-  'How I Deliver',
-  'Enterprise Repository',
-  'Have a business idea',
+  'Enterprise Platform Control Surface',
+  'Billing Engine',
+  'Financial event processing, merchant invoicing and lifecycle visibility.',
+  'How Value Moves Through The Platform',
+  'Architecture Layer Explorer',
+  'Engineering Evidence',
+  'Enterprise Thinking',
+  'Illustrative platform flow, not live production metrics.',
 ]) {
-  if (!home.includes(text)) failures.push(`Homepage missing required V2 content: ${text}`);
+  if (!home.includes(text)) failures.push(`Homepage missing required V3 content: ${text}`);
 }
 
 const css = fs.readFileSync(path.join(dist, 'styles.css'), 'utf8');
-if (!css.includes('@media')) failures.push('Responsive media queries are missing.');
-if (!css.includes('.mobile-menu')) failures.push('Mobile menu styles are missing.');
-if (!css.includes(':hover')) failures.push('Hover states are missing.');
-if (!css.includes('details')) failures.push('Interactive details panel styles are missing.');
+for (const text of ['@media', 'prefers-reduced-motion', '.platform-visual', '.flow-path', '.module-inspector', '.journey-button', '.layer-button', ':hover']) {
+  if (!css.includes(text)) failures.push(`CSS missing required V3 support: ${text}`);
+}
+
+const js = fs.readFileSync(path.join(dist, 'app.js'), 'utf8');
+for (const text of ['data-module', 'data-journey', 'data-layer-name', 'prefers-reduced-motion']) {
+  if (!js.includes(text)) failures.push(`Interaction script missing required behavior: ${text}`);
+}
 
 if (failures.length) {
   console.error('Portfolio validation failed:');
@@ -100,4 +77,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`Portfolio validation passed for ${requiredRoutes.length} routes.`);
+console.log(`Portfolio validation passed for ${requiredRoutes.length} routes and V3 interactive checks.`);
